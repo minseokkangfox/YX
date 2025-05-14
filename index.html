@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YX클랜 게시판</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 1rem;
+    }
+    header {
+      background-color: #222;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+    }
+    #postList div {
+      border-bottom: 1px solid #ddd;
+      padding: 1rem 0;
+      cursor: pointer;
+    }
+    #postDetail {
+      display: none;
+      margin-top: 2rem;
+      border-top: 2px solid #222;
+      padding-top: 1rem;
+    }
+    .comment {
+      background: #f9f9f9;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>YX클랜 커뮤니티</h1>
+  </header>
+  <main>
+    <div id="authForm">
+        <input type="text" id="username" placeholder="이름 (닉네임) 입력"><br>
+        <input type="email" id="email" placeholder="이메일 입력"><br>
+        <input type="password" id="password" placeholder="비밀번호 입력"><br>
+        <button onclick="register()">회원가입</button>
+        <button onclick="login()">로그인</button>
+      </div>
+
+    <div id="userArea" style="display:none;">
+      <p id="userInfo"></p>
+      <button onclick="logout()">로그아웃</button>
+    </div>
+
+    <div id="postForm" style="display:none;">
+      <h2>게시글 작성</h2>
+      <input type="text" id="title" placeholder="제목"><br>
+      <textarea id="content" rows="4" placeholder="내용을 입력하세요"></textarea><br>
+      <button onclick="submitPost()">작성 완료</button>
+    </div>
+
+    <div id="postList">
+      <h2>📄 게시글 목록</h2>
+    </div>
+
+    <div id="postDetail">
+      <h3 id="detailTitle"></h3>
+      <p id="detailAuthor"></p>
+      <p id="detailContent"></p>
+      <h4>💬 댓글</h4>
+      <div id="commentList"></div>
+      <textarea id="newComment" placeholder="댓글 작성..." rows="2"></textarea><br>
+      <button onclick="submitComment()">댓글 달기</button>
+    </div>
+  </main>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVciBor_0vj8NyuKJ080-HyfE-VRjam70",
+      authDomain: "yxclan-90b06.firebaseapp.com",
+      projectId: "yxclan-90b06",
+      storageBucket: "yxclan-90b06.appspot.com",
+      messagingSenderId: "291460759619",
+      appId: "1:291460759619:web:18bcecb89c3570e7d7d4f6",
+      measurementId: "G-QZ9JQRZ3CH"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentPostId = null;
+
+    auth.onAuthStateChanged(user => {
+  if (user) {
+    db.collection("users").doc(user.uid).get().then(doc => {
+      const name = doc.exists ? doc.data().name : user.email;
+      document.getElementById("authForm").style.display = "none";
+      document.getElementById("userArea").style.display = "block";
+      document.getElementById("postForm").style.display = "block";
+      document.getElementById("userInfo").innerText = `${name}님 환영합니다!`;
+    });
+  } else {
+    document.getElementById("authForm").style.display = "block";
+    document.getElementById("userArea").style.display = "none";
+    document.getElementById("postForm").style.display = "none";
+  }
+  loadPosts();
+});
+
+
+    function register() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const name = document.getElementById("username").value.trim();
+      if (!email || !password || !name) return alert("이름, 이메일, 비밀번호를 모두 입력해주세요");
+      
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          return db.collection("users").doc(userCredential.user.uid).set({
+            name: name,
+            email: email
+          });
+        })
+        .then(() => alert("회원가입 완료"))
+        .catch(error => alert("오류: " + error.message));
+    }
+
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) return alert("이메일과 비밀번호 입력 필수");
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(error => alert("로그인 실패: " + error.message));
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    function submitPost() {
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const user = auth.currentUser;
+      if (!title || !content) return alert("내용을 입력하세요.");
+      
+      db.collection("users").doc(user.uid).get().then(doc => {
+        const authorName = doc.exists ? doc.data().name : user.email;
+        db.collection("posts").add({
+          title,
+          content,
+          author: authorName,
+          authorId: user.uid,
+          createdAt: new Date()
+        }).then(() => {
+          document.getElementById("title").value = "";
+          document.getElementById("content").value = "";
+          loadPosts();
+        });
+      });
+    }
+
+    function loadPosts() {
+      const postList = document.getElementById("postList");
+      postList.innerHTML = "<h2>📄 게시글 목록</h2>";
+      db.collection("posts").orderBy("createdAt", "desc").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.innerHTML = `<strong>${data.title}</strong><br><small>${data.author}</small>`;
+          div.onclick = () => showPostDetail(doc.id, data);
+          postList.appendChild(div);
+        });
+      });
+    }
+
+    function showPostDetail(postId, data) {
+      currentPostId = postId;
+      document.getElementById("detailTitle").innerText = data.title;
+      document.getElementById("detailAuthor").innerText = `작성자: ${data.author}`;
+      document.getElementById("detailContent").innerText = data.content;
+      document.getElementById("postDetail").style.display = "block";
+      loadComments(postId);
+    }
+
+    function loadComments(postId) {
+      const commentList = document.getElementById("commentList");
+      commentList.innerHTML = "";
+      db.collection("posts").doc(postId).collection("comments")
+        .orderBy("createdAt").get().then(snapshot => {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement("div");
+            div.className = "comment";
+            div.innerText = `${data.author}: ${data.text}`;
+            commentList.appendChild(div);
+          });
+        });
+    }
+
+    function submitComment() {
+      const text = document.getElementById("newComment").value.trim();
+      const user = auth.currentUser;
+      if (!text) return alert("댓글을 입력하세요.");
+      
+      db.collection("users").doc(user.uid).get().then(doc => {
+        const authorName = doc.exists ? doc.data().name : user.email;
+        db.collection("posts").doc(currentPostId).collection("comments").add({
+          text,
+          author: authorName,
+          authorId: user.uid,
+          createdAt: new Date()
+        }).then(() => {
+          document.getElementById("newComment").value = "";
+          loadComments(currentPostId);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
