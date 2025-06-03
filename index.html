@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YX클랜 게시판</title>
+  <!-- Google AdSense 코드 -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9686733290484221"
+     crossorigin="anonymous"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 
@@ -899,12 +902,6 @@
     <h1>YX클랜 커뮤니티</h1>
   </header>
 
-  <div style="text-align: center; margin: 20px 0;">
-    <a href="https://www.google.com/search?q=2025%EB%85%84+%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD+%EB%8C%80%ED%86%B5%EB%A0%B9+%EC%84%A0%EA%B1%B0&sca_esv=cc16af6e80ebe361&hl=ko&biw=1920&bih=901&sxsrf=AE3TifOUyxC1cuyb9IM7p2QAXDMw8FmUWg:1748920386384&source=lnms&fbs=AIIjpHyDg0Pef0CibV20xjIa-FReIKmAxsMTxuQCKLhb9OUJki0DxYQJ2cWp-4Nzr6A22Hd6jjCiXj3pHtJL4GF4IdmcwdlLLf1ECEfysoDiXUUjx2YwsV58ThfMCUecEY6diNUs81BxhulDZOaFCEncduZ8ulGRHT27j818QBbQzIFC6Jn-EwY0q_ERcvv5aqVjTHcEM0_9dZG2XlYpNwztm2mq2FZUCiu6gXOr--VA-atWAaFtCa8&sa=X&ved=2ahUKEwibwfuSpNSNAxUIh68BHWJ6JeAQ0pQJegQIBhAD" target="_blank">
-      <img src="투표.png" alt="투표 이미지" style="width: 500px; height: 100px; object-fit: contain; cursor: pointer;">
-    </a>
-  </div>
-
   <main>
     <div id="authForm">
         <input type="text" id="username" placeholder="이름 (닉네임) 입력"><br>
@@ -930,9 +927,35 @@
         <button onclick="login()">로그인</button>
       </div>
 
+    <!-- 상단 광고 -->
+    <div class="ad-container" style="margin: 20px 0; text-align: center;">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-9686733290484221"
+           data-ad-slot="XXXXXXXXXX"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     <div id="userArea" style="display:none;">
       <p id="userInfo"></p>
       <button onclick="logout()">로그아웃</button>
+    </div>
+
+    <!-- 게시글 목록과 상세보기 사이 광고 -->
+    <div class="ad-container" style="margin: 20px 0; text-align: center;">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-9686733290484221"
+           data-ad-slot="XXXXXXXXXX"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
     </div>
 
     <div id="postForm" style="display:none;">
